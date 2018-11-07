@@ -66,6 +66,7 @@ const start = async (otApiKey, otSecret, sessionId, rtmpUrl, hlsEnabled) => {
       json: true,
     };
     const response = await request(requestConfig);
+    // eslint-disable-next-line no-console
     console.log('HLS has started =>', response);
     return {
       hlsUrl: ensureHTTPS(response.broadcastUrls.hls),
@@ -73,6 +74,7 @@ const start = async (otApiKey, otSecret, sessionId, rtmpUrl, hlsEnabled) => {
     };
   } catch (error) {
     if (error.status === 409) {
+      // eslint-disable-next-line no-console
       console.log("what's this error?");
     }
     return error;
@@ -96,6 +98,7 @@ const stop = async (otApiKey, otSecret, broadcastId) => {
     try {
       await request(requestConfig);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.log('Error stopping broadcast => ', error);
     }
   };
