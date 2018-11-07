@@ -10,6 +10,8 @@ const adminProps = [
   'email',
   'hls',
   'audioOnlyEnabled',
+  'embedEnabled',
+  'copyAdminEnabled',
   'createdAt',
   'updatedAt'
 ];
