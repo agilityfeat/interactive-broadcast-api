@@ -25,6 +25,7 @@ const removeImage = fileId => storageFile(`eventImages/${fileId}`).delete();  //
 (() => {
   // Run the cron job every third day at midnight
   new CronJob('0 0 */3 * *', async () => { // eslint-disable-line no-new
+    // eslint-disable-next-line no-console
     console.log('Cleaning up event images', moment().format('dddd, MMMM Do YYYY, h:mm:ss a'));
 
     // Get all of the events with a status of 'closed'
@@ -58,6 +59,7 @@ const removeImage = fileId => storageFile(`eventImages/${fileId}`).delete();  //
       await Promise.all(R.map(R.partialRight(update, [{ startImage: null, endImage: null }], eventsToUpdate)));
     } catch (error) {
       // We're going to have errors unless we add a flag to the events, or remove their start/end image properties
+      // eslint-disable-next-line no-console
       console.log('Failed to cleanup one or more images for closed events', error);
     }
   }, null, true);
@@ -76,6 +78,7 @@ const removeAllImages = async (images = null) => {
   try {
     await Promise.all(R.map(img => removeImage(R.prop('id', img)), R.values(images)));
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.log('Failed to remove all images', error);
   }
 };
@@ -102,6 +105,7 @@ const updateImages = async (currentImages, imagesUpdate = {}) => {
   try {
     await Promise.all(imagesToRemove);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.log('Failed to cleanup images for event update', error);
   }
 };

@@ -193,9 +193,11 @@ const startArchive = async (id) => {
     const admin = await Admin.getAdmin(event.adminId);
     try {
       const archiveId = await OpenTok.startArchive(admin.otApiKey, admin.otSecret, event.stageSessionId, event.name, event.uncomposed);
+      // eslint-disable-next-line no-console
       console.log('Starting the archive => ', archiveId);
       return archiveId;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.log('Error starting the archive =>', error);
     }
   }
@@ -213,9 +215,11 @@ const stopArchive = async (event, admin) => {
       await OpenTok.stopArchive(admin.otApiKey, admin.otSecret, event.archiveId);
       const archiveExtension = event.uncomposed ? 'zip' : 'mp4';
       const url = `${config.bucketUrl}/${admin.otApiKey}/${event.archiveId}/archive.${archiveExtension}`;
+      // eslint-disable-next-line no-console
       console.log('Stopping the archive =>', url);
       return url;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.log('Error stopping the archive =>', error);
     }
   }
@@ -264,6 +268,7 @@ const addActiveBroadcast = async (id) => {
       }
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.log('Error connecting to firebase => ', error);
   }
 };
@@ -284,6 +289,7 @@ const updateActiveBroadcast = async (id, newStatus, archiveId) => {
   try {
     await db.ref(`activeBroadcasts/${event.adminId}/${event.fanUrl}`).update(record);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.log(error);
   }
 };
@@ -299,6 +305,7 @@ const stopHLS = async (otApiKey, otSecret, fanUrl, adminId) => {
     const activeBroadcast = query.val();
     if (activeBroadcast.hlsUrl) broadcast.stop(otApiKey, otSecret, activeBroadcast.hlsId);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.log('Error stopping HLS', error);
   }
 };
@@ -312,6 +319,7 @@ const deleteActiveBroadcast = async (fanUrl, adminId) => {
   try {
     await db.ref(`activeBroadcasts/${adminId}/${fanUrl}`).remove();
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.log(error);
   }
 };

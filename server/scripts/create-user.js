@@ -1,3 +1,4 @@
+/*eslint-disable*/
 /**
  *  This is a Nodejs script for creating superadmins that was meant to be executed from a command line.
  *  Required parameters:

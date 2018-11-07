@@ -59,6 +59,7 @@ const createToken = (apiKey, apiSecret, sessionId, options) => {
   try {
     return ot.generateToken(sessionId, options);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.log('Error creating token', error);
   }
   return false;
