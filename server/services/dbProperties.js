@@ -9,6 +9,7 @@ const adminProps = [
   'httpSupport',
   'email',
   'hls',
+  'audioOnlyEnabled',
   'createdAt',
   'updatedAt'
 ];
