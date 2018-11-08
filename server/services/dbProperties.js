@@ -11,7 +11,6 @@ const adminProps = [
   'hls',
   'audioOnlyEnabled',
   'embedEnabled',
-  'copyAdminEnabled',
   'createdAt',
   'updatedAt'
 ];
