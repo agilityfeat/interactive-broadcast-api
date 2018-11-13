@@ -11,6 +11,9 @@ const adminProps = [
   'hls',
   'audioOnlyEnabled',
   'embedEnabled',
+  'registrationEnabled',
+  'fileSharingEnabled',
+  'siteColor',
   'createdAt',
   'updatedAt'
 ];
