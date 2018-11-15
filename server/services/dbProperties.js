@@ -14,6 +14,8 @@ const adminProps = [
   'registrationEnabled',
   'fileSharingEnabled',
   'siteColor',
+  'siteLogo',
+  'siteFavicon',
   'domain',
   'createdAt',
   'updatedAt'
