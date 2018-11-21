@@ -21,7 +21,16 @@ const adminProps = [
   'updatedAt'
 ];
 
-const userProps = ['displayName',
+const viewerProps = [
+  'adminId',
+  'displayName',
+  'email',
+  'createdAt',
+  'updatedAt'
+];
+
+const userProps = [
+  'displayName',
   'email',
   'password'
 ];
@@ -80,6 +89,7 @@ const eventStatuses = {
 module.exports = {
   adminProps,
   userProps,
+  viewerProps,
   eventProps,
   eventPublicProps,
   timestampCreate,
