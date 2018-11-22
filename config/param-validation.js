@@ -99,6 +99,18 @@ const createTokenCelebrity = {
   },
 };
 
+const createViewer = {
+  body: {
+    adminId: Joi.string().required(),
+    displayName: Joi.string().required(),
+    email: Joi.string().email().required(),
+    password: Joi.string().regex(/[a-zA-Z0-9]{6,30}/)
+      .required()
+      .options({ language: { string: { regex: { base: 'must be a string with at least 6 characters.' } } } })
+      .label('Password'),
+  },
+};
+
 export {
   jwtAdmin,
   createAdmin,
@@ -108,6 +120,7 @@ export {
   createTokenFan,
   createTokenHost,
   createTokenCelebrity,
+  createViewer,
   jwtFan,
   jwtHost,
   jwtCelebrity
