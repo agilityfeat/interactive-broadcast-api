@@ -3,6 +3,7 @@ import httpStatus from 'http-status';
 import APIError from '../helpers/APIError';
 import config from '../../config/config';
 import { getEventByKey, getMostRecentEvent } from './event';
+import { getAdmin } from './admin';
 import { verifyIdToken } from './firebase';
 
 const roles = {
@@ -44,9 +45,12 @@ const login = async (req, res, next) => {
  * @returns {*}
  */
 const loginFan = async (req, res, next) => {
-  const { fanUrl, adminId } = req.body;
+  const { fanUrl, adminId, idToken } = req.body;
   const event = fanUrl ? await getEventByKey(adminId, fanUrl, 'fanUrl') : await getMostRecentEvent(adminId);
-  if (event) {
+  const uid = await verifyIdToken(idToken);
+  const { registrationEnabled } = await getAdmin(adminId);
+
+  if (event && (!registrationEnabled || uid)) {
     const token = jwt.sign({
       fanUrl,
       adminId,
