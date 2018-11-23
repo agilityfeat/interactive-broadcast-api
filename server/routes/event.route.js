@@ -11,6 +11,7 @@ const getEvents = getAPIResponse(req => Event.getEvents(req.query.adminId), { sk
 const getEventsByAdmin = getAPIResponse(req => Event.getEventsByAdmin(req.query.adminId), { skipNotFoundValidation: true });
 const getMostRecentEvent = getAPIResponse(req => Event.getMostRecentEvent(req.query.adminId), { skipNotFoundValidation: true });
 const getEventById = getAPIResponse(req => Event.getEvent(req.params.id));
+const getEventByKey = getAPIResponse(req => Event.getEventByKey(req.query.adminId, req.query.slug));
 const createEvent = getAPIResponse(req => Event.create(req.body));
 const updateEvent = getAPIResponse(req => Event.update(req.params.id, req.body));
 const deleteEvent = getAPIResponse(req => Event.deleteEvent(req.params.id));
@@ -24,6 +25,7 @@ const createTokenByUserType = getAPIResponse(req => Event.createTokenByUserType(
 router.get('/', getEvents);
 router.get('/get-events-by-admin', getEventsByAdmin);
 router.get('/get-current-admin-event', getMostRecentEvent);
+router.get('/get-by-key', getEventByKey);
 router.get('/:id', getEventById);
 router.post('/', checkAdmin, validate(paramValidation.event), validateEvent, createEvent);
 router.patch('/:id', checkAdmin, validate(paramValidation.event), validateEvent, updateEvent);

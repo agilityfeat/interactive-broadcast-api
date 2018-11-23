@@ -29,7 +29,8 @@ const allowedPaths = [
   '/api/auth/token-host',
   '/api/event/get-events-by-admin',
   '/api/event/get-current-admin-event',
-  '/api/viewer'
+  '/api/event/get-by-key',
+  '/api/viewer',
 ];
 
 // parse body params and attache them to req.body
