@@ -41,6 +41,14 @@ app.use(cookieParser());
 app.use(compress());
 app.use(methodOverride());
 
+// add origin domain to express request object
+app.use((req, res, next) => {
+  const re = /https?:\/\/(.*)/i;
+  // eslint-disable-next-line no-param-reassign
+  req.originDomain = req.get('origin').match(re)[1];
+  next();
+});
+
 // secure apps by setting various HTTP headers
 app.use(helmet());
 
