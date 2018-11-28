@@ -12,21 +12,21 @@ const jwtAdmin = {
 const jwtFan = {
   body: {
     fanUrl: Joi.string(),
-    adminId: Joi.string().required(),
+    domainId: Joi.string().required(),
   }
 };
 
 const jwtHost = {
   body: {
     hostUrl: Joi.string(),
-    adminId: Joi.string().required(),
+    domainId: Joi.string().required(),
   }
 };
 
 const jwtCelebrity = {
   body: {
     celebrityUrl: Joi.string(),
-    adminId: Joi.string().required(),
+    domainId: Joi.string().required(),
   }
 };
 
@@ -36,14 +36,28 @@ const createAdmin = {
     otApiKey: Joi.string().allow(''),
     otSecret: Joi.string().allow(''),
     superAdmin: Joi.boolean(),
-    httpSupport: Joi.boolean(),
-    hls: Joi.boolean(),
     email: Joi.string().email().required(),
     password: Joi.string().regex(/[a-zA-Z0-9]{6,30}/)
       .required()
       .options({ language: { string: { regex: { base: 'must be a string with at least 6 characters.' } } } })
       .label('Password'),
   },
+};
+
+const createDomain = {
+  body: {
+    domain: Joi.string().required(),
+    hls: Joi.boolean(),
+    httpSupport: Joi.boolean(),
+    embedEnabled: Joi.boolean(),
+    registrationEnabled: Joi.boolean(),
+    fileSharingEnabled: Joi.boolean(),
+    siteColor: Joi.string().required(),
+  }
+};
+
+const updateDomain = {
+  body: R.omit(['domain'], createDomain.body)
 };
 
 const updateAdmin = {
@@ -68,6 +82,7 @@ const event = {
     redirectUrl: Joi.string(),
     uncomposed: Joi.boolean().required(),
     adminId: Joi.string(),
+    domainId: Joi.string(),
     status: Joi.string().valid(R.values(eventStatuses)),
   },
 };
@@ -80,28 +95,28 @@ const eventStatus = {
 
 const createTokenFan = {
   body: {
-    adminId: Joi.string().required(),
+    domainId: Joi.string().required(),
     fanUrl: Joi.string().required(),
   },
 };
 
 const createTokenHost = {
   body: {
-    adminId: Joi.string().required(),
+    domainId: Joi.string().required(),
     hostUrl: Joi.string().required(),
   },
 };
 
 const createTokenCelebrity = {
   body: {
-    adminId: Joi.string().required(),
+    domainId: Joi.string().required(),
     celebrityUrl: Joi.string().required(),
   },
 };
 
 const createViewer = {
   body: {
-    adminId: Joi.string().required(),
+    domainId: Joi.string().required(),
     displayName: Joi.string().required(),
     email: Joi.string().email().required(),
     password: Joi.string().regex(/[a-zA-Z0-9]{6,30}/)
@@ -121,6 +136,8 @@ export {
   createTokenHost,
   createTokenCelebrity,
   createViewer,
+  createDomain,
+  updateDomain,
   jwtFan,
   jwtHost,
   jwtCelebrity
