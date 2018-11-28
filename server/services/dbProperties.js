@@ -1,13 +1,8 @@
 const admin = require('firebase-admin');
 
-const adminProps = [
+const domainProps = [
   'id',
-  'displayName',
-  'otApiKey',
-  'otSecret',
-  'superAdmin',
   'httpSupport',
-  'email',
   'hls',
   'audioOnlyEnabled',
   'embedEnabled',
@@ -21,8 +16,20 @@ const adminProps = [
   'updatedAt'
 ];
 
+const adminProps = [
+  'id',
+  'domainId',
+  'displayName',
+  'otApiKey',
+  'otSecret',
+  'superAdmin',
+  'email',
+  'createdAt',
+  'updatedAt'
+];
+
 const viewerProps = [
-  'adminId',
+  'domainId',
   'displayName',
   'email',
   'createdAt',
@@ -38,6 +45,7 @@ const userProps = [
 const eventProps = [
   'id',
   'name',
+  'domainId',
   'startImage',
   'endImage',
   'fanUrl',
@@ -88,6 +96,7 @@ const eventStatuses = {
 
 module.exports = {
   adminProps,
+  domainProps,
   userProps,
   viewerProps,
   eventProps,
