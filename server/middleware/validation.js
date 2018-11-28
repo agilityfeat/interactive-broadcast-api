@@ -7,7 +7,7 @@ import { roles } from '../services/auth';
 import { eventStatuses } from '../services/dbProperties';
 import APIError from '../helpers/APIError';
 
-const Admin = require('../services/admin');
+const Domain = require('../services/domain');
 const Event = require('../services/event');
 
 
@@ -43,12 +43,12 @@ const validateApiKey = (req, res, next) => {
 };
 
 const validateEvent = (req, res, next) => {
-  const { adminId, fanUrl } = req.body;
+  const { domainId, fanUrl } = req.body;
   const { id } = req.params;
-  Admin.getAdmin(adminId)
-  .then(() => Event.getEventByKey(adminId, fanUrl, 'fanUrl'))
-  .then(event => (!event || event.id === id || event.status === eventStatuses.CLOSED ? next() : sendError(res, 'Event exists')))
-  .catch(R.partial(sendError, [res]));
+  Domain.getDomain(domainId)
+    .then(() => Event.getEventByKey(domainId, fanUrl, 'fanUrl'))
+    .then(event => (!event || event.id === id || event.status === eventStatuses.CLOSED ? next() : sendError(res, 'Event exists')))
+    .catch(R.partial(sendError, [res]));
 };
 
 const checkAdmin = (req, res, next) => checkRole(roles.ADMIN, req, res, next);
