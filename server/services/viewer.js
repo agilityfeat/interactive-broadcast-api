@@ -8,23 +8,23 @@ const buildViewer = (data, props = viewerProps) => R.pick(props, data);
 
 /**
  * Get list of viewers
- * @param {String} adminId
+ * @param {String} domainId
  * @returns {Promise} <resolve: Viewer List, reject: Error/>
  */
-const getViewers = async (adminId) => {
-  const snapshot = await db.ref(`admins/${adminId}/viewers`).once('value');
+const getViewers = async (domainId) => {
+  const snapshot = await db.ref(`domains/${domainId}/viewers`).once('value');
   return snapshot.val();
 };
 
 
 /**
  * Get a particular viewer from firebase
- * @param {String} adminId
+ * @param {String} domainId
  * @param {String} uid
  * @returns {Promise} <resolve: Viewer data, reject: Error>
  */
-const getViewer = async (adminId, uid) => {
-  const viewers = await db.ref(`admins/${adminId}/viewers`);
+const getViewer = async (domainId, uid) => {
+  const viewers = await db.ref(`domains/${domainId}/viewers`);
   const snapshot = await viewers.child(uid).once('value');
 
   return snapshot.val();
@@ -36,8 +36,8 @@ const getViewer = async (adminId, uid) => {
  * @param {String} uid
  * @returns {Promise} <resolve: Viewer data, reject: Error>
  */
-const deleteViewer = async (adminId, uid) => {
-  await db.ref(`admins/${adminId}/viewers/${uid}`).remove();
+const deleteViewer = async (domainId, uid) => {
+  await db.ref(`domains/${domainId}/viewers/${uid}`).remove();
   return true;
 };
 
@@ -56,8 +56,8 @@ const createViewer = async (data) => {
   }
 
   const viewerData = buildViewer(R.merge(timestampCreate, data));
-  db.ref(`admins/${data.adminId}/viewers/${user.uid}`).set(viewerData);
-  return getViewer(data.adminId, user.uid);
+  db.ref(`domains/${data.domainId}/viewers/${user.uid}`).set(viewerData);
+  return getViewer(data.domainId, user.uid);
 };
 
 

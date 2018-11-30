@@ -5,7 +5,7 @@ import validate from 'express-validation';
 const router = express.Router(); // eslint-disable-line new-cap
 const Admin = require('../services/admin');
 const getAPIResponse = require('../helpers/APIResponse');
-const { validateApiKey, checkAdmin } = require('../middleware/validation');
+const { checkAdmin } = require('../middleware/validation');
 const paramValidation = require('../../config/param-validation');
 
 const getAdmins = getAPIResponse(() => Admin.getAdmins(), { skipNotFoundValidation: true });
@@ -16,8 +16,8 @@ const deleteAdmin = getAPIResponse(req => Admin.deleteUser(req.params.id));
 
 router.get('/', checkAdmin, getAdmins);
 router.get('/:id', checkAdmin, getAdminById);
-router.post('/', checkAdmin, validate(paramValidation.createAdmin), validateApiKey, createAdmin);
-router.patch('/:id', checkAdmin, validate(paramValidation.updateAdmin), validateApiKey, updateAdmin);
+router.post('/', checkAdmin, validate(paramValidation.createAdmin), createAdmin);
+router.patch('/:id', checkAdmin, validate(paramValidation.updateAdmin), updateAdmin);
 router.delete('/:id', checkAdmin, deleteAdmin);
 
 export default router;

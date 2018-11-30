@@ -5,6 +5,7 @@ const { db } = require('./firebase');
 const { removeAllImages, updateImages } = require('./imageStorage');
 const { eventProps, timestampCreate, timestampUpdate, eventStatuses, TS, eventPublicProps } = require('./dbProperties');
 const Admin = require('./admin');
+const Domain = require('./domain');
 const OpenTok = require('./opentok');
 
 const {
@@ -32,11 +33,11 @@ const getImages = R.pick(['startImage', 'endImage']);
 /** Exports */
 
 /**
- * Get the list of events by admin
+ * Get the list of events
  * @returns {Promise} <resolve: Event List, reject: Error>
  */
-const getEvents = async (adminId = null) => {
-  const snapshot = await db.ref('events').orderByChild('adminId').equalTo(adminId).once('value');
+const getEvents = async () => {
+  const snapshot = await db.ref('events').orderByChild('domainId').once('value');
   return snapshot.val();
 };
 
@@ -45,7 +46,7 @@ const getEvents = async (adminId = null) => {
  * @returns {Promise} <resolve: Event List, reject: Error>
  */
 const getEventsByAdmin = async (adminId = null) => {
-  const events = await getEvents(adminId);
+  const events = await db.ref('events').orderByChild('adminId').equalTo(adminId).once('value');
   if (events) {
     const notClosed = event => event.status !== eventStatuses.CLOSED;
     const pickProps = items => items.map(item => R.pick(eventPublicProps, item));
@@ -54,13 +55,18 @@ const getEventsByAdmin = async (adminId = null) => {
   return null;
 };
 
+const getEventsByDomainId = async (domainId = null) => {
+  const snapshot = await db.ref('events').orderByChild('domainId').equalTo(domainId).once('value');
+  return snapshot.val();
+};
+
 /**
  * Get the last event that is `live` or `preshow`
- * @param {String} adminId
+ * @param {String} domainId
  * @returns {Promise} <resolve: Event List, reject: Error>
  */
-const getMostRecentEvent = async (adminId = null) => {
-  const snapshot = await getEvents(adminId);
+const getMostRecentEvent = async (domainId = null) => {
+  const snapshot = await getEventsByDomainId(domainId);
   if (snapshot) {
     const events = sortByCreatedAt(Object.values(snapshot));
     return filterByStatus(eventStatuses.LIVE)(events) || filterByStatus(eventStatuses.PRESHOW)(events);
@@ -89,17 +95,17 @@ const getEventBySessionId = async (sessionId) => {
 };
 
 /**
- * Get a particular Event by primary key <slug, adminId>
- * @param {String} adminId
+ * Get a particular Event by primary key <slug, domainId>
+ * @param {String} domainId
  * @param {String} slug <fanUrl OR hostUrl OR celebrityUrl>
  * @returns {Promise} <resolve: Event data, reject: Error>
  */
-const getEventByKey = async (adminId, slug, field = 'fanUrl') => {
+const getEventByKey = async (domainId, slug, field = 'fanUrl') => {
   const snapshot = await db.ref('events').orderByChild(field).equalTo(slug).once('value');
   if (snapshot.numChildren()) {
     const events = Object.values(snapshot.val());
-    // Filtering by adminId
-    return R.findLast(R.propEq('adminId', adminId))(events);
+    // Filtering by domainId
+    return R.findLast(R.propEq('domainId', domainId))(events);
   }
 
   return null;
@@ -123,14 +129,14 @@ const saveEvent = async (data) => {
  * @param {Object} event
  * @returns {Object} <sessionId, stageSessionId>
  */
-const getSessions = async (admin) => {
+const getSessions = async (domain) => {
   const createSession = ({
     otApiKey,
     otSecret
   }) => OpenTok.createSession(otApiKey, otSecret);
   try {
-    const session = await createSession(admin);
-    const stageSession = await createSession(admin);
+    const session = await createSession(domain);
+    const stageSession = await createSession(domain);
     return {
       sessionId: session.sessionId,
       stageSessionId: stageSession.sessionId
@@ -144,6 +150,7 @@ const getSessions = async (admin) => {
  * Save an event
  * @param {Object} data
  * @param {String} data.adminId
+ * @param {String} data.domainId
  * @param {Boolean} data.archiveEvent
  * @param {String} data.celebrityUrl
  * @param {String} data.fanUrl
@@ -154,8 +161,8 @@ const getSessions = async (admin) => {
  */
 const create = async (data) => {
   try {
-    const admin = await Admin.getAdmin(data.adminId);
-    const sessions = await getSessions(admin);
+    const domain = await Domain.getDomain(data.domainId);
+    const sessions = await getSessions(domain);
     const status = eventStatuses.NOT_STARTED;
     const rtmpUrl = '';
     const defaultValues = {
@@ -190,9 +197,9 @@ const update = async (id, data) => {
 const startArchive = async (id) => {
   const event = await getEvent(id);
   if (event.archiveEvent) {
-    const admin = await Admin.getAdmin(event.adminId);
+    const domain = await Domain.getDomain(event.domainId);
     try {
-      const archiveId = await OpenTok.startArchive(admin.otApiKey, admin.otSecret, event.stageSessionId, event.name, event.uncomposed);
+      const archiveId = await OpenTok.startArchive(domain.otApiKey, domain.otSecret, event.stageSessionId, event.name, event.uncomposed);
       // eslint-disable-next-line no-console
       console.log('Starting the archive => ', archiveId);
       return archiveId;
@@ -209,12 +216,12 @@ const startArchive = async (id) => {
  * @param {String} id
  * @returns true
  */
-const stopArchive = async (event, admin) => {
+const stopArchive = async (event, domain) => {
   if (event.archiveId) {
     try {
-      await OpenTok.stopArchive(admin.otApiKey, admin.otSecret, event.archiveId);
+      await OpenTok.stopArchive(domain.otApiKey, domain.otSecret, event.archiveId);
       const archiveExtension = event.uncomposed ? 'zip' : 'mp4';
-      const url = `${config.bucketUrl}/${admin.otApiKey}/${event.archiveId}/archive.${archiveExtension}`;
+      const url = `${config.bucketUrl}/${domain.otApiKey}/${event.archiveId}/archive.${archiveExtension}`;
       // eslint-disable-next-line no-console
       console.log('Stopping the archive =>', url);
       return url;
@@ -233,7 +240,7 @@ const stopArchive = async (event, admin) => {
  */
 const addActiveBroadcast = async (id) => {
   const event = await getEvent(id);
-  const admin = await Admin.getAdmin(event.adminId);
+  const domain = await Domain.getDomain(event.domainId);
   const record = {
     interactiveLimit: config.interactiveStreamLimit,
     name: event.name,
@@ -243,9 +250,9 @@ const addActiveBroadcast = async (id) => {
     endImage: event.endImage || null,
     activeFans: null,
     archiving: false,
-    hlsEnabled: admin.hls || false,
+    hlsEnabled: domain.hls || false,
   };
-  const ref = db.ref(`activeBroadcasts/${event.adminId}/${event.fanUrl}`);
+  const ref = db.ref(`activeBroadcasts/${event.domainId}/${event.fanUrl}`);
   try {
     ref.set(record);
     ref.on('value', async (value) => {
@@ -262,7 +269,7 @@ const addActiveBroadcast = async (id) => {
         // const shouldStartBroadcast = hlsEnabled && !hlsUrl && status === 'live' && viewers >= interactiveLimit;
         const shouldStartBroadcast = (hlsEnabled || event.rtmpUrl) && !hlsUrl && status === 'live';
         if (shouldStartBroadcast) {
-          const broadcastData = await broadcast.start(admin.otApiKey, admin.otSecret, event.stageSessionId, event.rtmpUrl, hlsEnabled);
+          const broadcastData = await broadcast.start(domain.otApiKey, domain.otSecret, event.stageSessionId, event.rtmpUrl, hlsEnabled);
           await ref.update(broadcastData);
         }
       }
@@ -287,7 +294,7 @@ const updateActiveBroadcast = async (id, newStatus, archiveId) => {
     archiving: archiveId !== false,
   };
   try {
-    await db.ref(`activeBroadcasts/${event.adminId}/${event.fanUrl}`).update(record);
+    await db.ref(`activeBroadcasts/${event.domainId}/${event.fanUrl}`).update(record);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.log(error);
@@ -299,9 +306,9 @@ const updateActiveBroadcast = async (id, newStatus, archiveId) => {
  * @param {String} id
  * @returns {Promise} <resolve: Event data, reject: Error>
  */
-const stopHLS = async (otApiKey, otSecret, fanUrl, adminId) => {
+const stopHLS = async (otApiKey, otSecret, fanUrl, domainId) => {
   try {
-    const query = await db.ref(`activeBroadcasts/${adminId}/${fanUrl}`).once('value');
+    const query = await db.ref(`activeBroadcasts/${domainId}/${fanUrl}`).once('value');
     const activeBroadcast = query.val();
     if (activeBroadcast.hlsUrl) broadcast.stop(otApiKey, otSecret, activeBroadcast.hlsId);
   } catch (error) {
@@ -315,9 +322,9 @@ const stopHLS = async (otApiKey, otSecret, fanUrl, adminId) => {
  * @param {String} id
  * @returns {Promise} <resolve: Event data, reject: Error>
  */
-const deleteActiveBroadcast = async (fanUrl, adminId) => {
+const deleteActiveBroadcast = async (fanUrl, domainId) => {
   try {
-    await db.ref(`activeBroadcasts/${adminId}/${fanUrl}`).remove();
+    await db.ref(`activeBroadcasts/${domainId}/${fanUrl}`).remove();
   } catch (error) {
     // eslint-disable-next-line no-console
     console.log(error);
@@ -346,18 +353,18 @@ const changeStatus = async (id, data) => {
     /* Update the status of the activeBroadcast */
     await updateActiveBroadcast(id, data.status, archiveId);
   } else if (data.status === eventStatuses.CLOSED) {
-    /* Get the event and admin information */
+    /* Get the event and domain information */
     const event = await getEvent(id);
-    const admin = await Admin.getAdmin(event.adminId);
+    const domain = await Domain.getDomain(event.domainId);
 
     /* Stop HLS */
-    await stopHLS(admin.otApiKey, admin.otSecret, event.fanUrl, event.adminId);
+    await stopHLS(domain.otApiKey, domain.otSecret, event.fanUrl, event.domainId);
 
     /* Delete the activeBroadcast record */
-    await deleteActiveBroadcast(event.fanUrl, event.adminId);
+    await deleteActiveBroadcast(event.fanUrl, event.domainId);
 
     /* Stop archiving */
-    const archiveUrl = await stopArchive(event, admin);
+    const archiveUrl = await stopArchive(event, domain);
     updateData.archiveUrl = archiveUrl;
 
     /* update the showEndedAt */
@@ -402,15 +409,15 @@ const deleteEventsByAdminId = async (id) => {
  */
 const createTokenProducer = async (id) => {
   const event = await getEvent(id);
-  const admin = await Admin.getAdmin(event.adminId);
+  const domain = await Domain.getDomain(event.domainId);
   const options = {
     role: OpenTok.otRoles.MODERATOR,
     data: buildOtData(roles.PRODUCER)
   };
-  const backstageToken = await OpenTok.createToken(admin.otApiKey, admin.otSecret, event.sessionId, options);
-  const stageToken = await OpenTok.createToken(admin.otApiKey, admin.otSecret, event.stageSessionId, options);
+  const backstageToken = await OpenTok.createToken(domain.otApiKey, domain.otSecret, event.sessionId, options);
+  const stageToken = await OpenTok.createToken(domain.otApiKey, domain.otSecret, event.stageSessionId, options);
   return R.merge(event, {
-    apiKey: admin.otApiKey,
+    apiKey: domain.otApiKey,
     backstageToken,
     stageToken
   });
@@ -433,12 +440,12 @@ const createTokensFan = async (otApiKey, otSecret, stageSessionId, sessionId) =>
 /**
  * Create the tokens for the fan, and returns also the event data
  * @param {String} fanUrl
- * @param {String} adminId
+ * @param {String} domainId
  * @returns {Object}
  */
-const createTokenFan = async (adminId, slug) => {
-  const event = await getEventByKey(adminId, slug, 'fanUrl');
-  const { otApiKey, otSecret, httpSupport } = await Admin.getAdmin(event.adminId);
+const createTokenFan = async (domainId, slug) => {
+  const event = await getEventByKey(domainId, slug, 'fanUrl');
+  const { httpSupport, otApiKey, otSecret } = await Domain.getDomain(domainId);
   const { backstageToken, stageToken } = await createTokensFan(otApiKey, otSecret, event.stageSessionId, event.sessionId);
   return R.merge(event, {
     apiKey: otApiKey,
@@ -450,41 +457,41 @@ const createTokenFan = async (adminId, slug) => {
 
 /**
  * Create the token for the host or celebrity, and returns also the event data
- * @param {String} adminId
+ * @param {String} domainId
  * @param {String} slug
  * @param {String} userType
  * @returns {Object}
  */
-const createTokenHostCeleb = async (adminId, slug, userType) => {
+const createTokenHostCeleb = async (domainId, slug, userType) => {
   const field = userType === 'host' ? 'hostUrl' : 'celebrityUrl';
-  const event = await getEventByKey(adminId, slug, field);
-  const admin = await Admin.getAdmin(event.adminId);
+  const event = await getEventByKey(domainId, slug, field);
+  const domain = await Domain.getDomain(domainId);
   const options = {
     role: OpenTok.otRoles.PUBLISHER,
     data: buildOtData(userType)
   };
-  const stageToken = await OpenTok.createToken(admin.otApiKey, admin.otSecret, event.stageSessionId, options);
+  const stageToken = await OpenTok.createToken(domain.otApiKey, domain.otSecret, event.stageSessionId, options);
   return R.merge(event, {
-    apiKey: admin.otApiKey,
+    apiKey: domain.otApiKey,
     stageToken,
-    httpSupport: admin.httpSupport
+    httpSupport: domain.httpSupport
   });
 };
 
-const buildEventKey = (fanUrl, adminId) => [fanUrl, adminId].join('-');
+const buildEventKey = (fanUrl, domainId) => [fanUrl, domainId].join('-');
 
 /**
  * Get credentils for the last event that is `live` or `preshow`
- * @param {String} adminId
+ * @param {String} domainId
  * @param {String} userType <host/celebrity>
  * @returns {Promise} <resolve: Event List, reject: Error>
  */
-const createTokenByUserType = async (adminId, userType) => {
-  const event = await getMostRecentEvent(adminId);
+const createTokenByUserType = async (domainId, userType) => {
+  const event = await getMostRecentEvent(domainId);
   if (event) {
     return userType !== roles.FAN ?
-      await createTokenHostCeleb(adminId, userType === roles.CELEBRITY ? event.celebrityUrl : event.hostUrl, userType) :
-      await createTokenFan(adminId, event.fanUrl);
+      await createTokenHostCeleb(domainId, userType === roles.CELEBRITY ? event.celebrityUrl : event.hostUrl, userType) :
+      await createTokenFan(domainId, event.fanUrl);
   }
   return null;
 };
@@ -497,6 +504,7 @@ export {
   getEvent,
   deleteEventsByAdminId,
   getEventByKey,
+  getEventsByDomainId,
   changeStatus,
   createTokenProducer,
   createTokenFan,

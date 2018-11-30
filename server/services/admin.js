@@ -5,7 +5,7 @@ const { encrypt } = require('./encrypt.js');
 const Event = require('./event');
 
 const setDefaults = (adminData) => {
-  const fields = ['hls', 'httpSupport', 'superAdmin'];
+  const fields = ['superAdmin'];
   const setDefault = (v, k) => (R.contains(k, fields) ? R.defaultTo(false)(v) : v);
   return R.mapObjIndexed(setDefault, adminData);
 };

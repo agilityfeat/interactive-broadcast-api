@@ -4,6 +4,7 @@ import APIError from '../helpers/APIError';
 import config from '../../config/config';
 import { getEventByKey, getMostRecentEvent } from './event';
 import { getAdmin } from './admin';
+import { getDomain } from './domain';
 import { verifyIdToken } from './firebase';
 
 const roles = {
@@ -25,8 +26,11 @@ const roles = {
  */
 const login = async (req, res, next) => {
   const idToken = req.body.idToken;
-  const uid = config.env !== 'development' ? await verifyIdToken(idToken) : true;
-  if (uid) {
+  const uid = await verifyIdToken(idToken);
+  const { domainId, superAdmin } = await getAdmin(uid);
+  const { domain } = await getDomain(domainId);
+
+  if (uid && (superAdmin || req.originDomain === domain)) {
     const token = jwt.sign({
       uid,
       role: roles.ADMIN
@@ -45,15 +49,15 @@ const login = async (req, res, next) => {
  * @returns {*}
  */
 const loginFan = async (req, res, next) => {
-  const { fanUrl, adminId, idToken } = req.body;
-  const event = fanUrl ? await getEventByKey(adminId, fanUrl, 'fanUrl') : await getMostRecentEvent(adminId);
+  const { fanUrl, domainId, idToken } = req.body;
+  const event = fanUrl ? await getEventByKey(domainId, fanUrl, 'fanUrl') : await getMostRecentEvent(domainId);
   const uid = await verifyIdToken(idToken);
-  const { registrationEnabled } = await getAdmin(adminId);
+  const { registrationEnabled } = await getDomain(domainId);
 
   if (event && (!registrationEnabled || uid)) {
     const token = jwt.sign({
       fanUrl,
-      adminId,
+      domainId,
       role: roles.FAN,
     }, config.jwtSecret);
     return res.json({ token });
@@ -71,12 +75,12 @@ const loginFan = async (req, res, next) => {
  * @returns {*}
  */
 const loginHost = async (req, res, next) => {
-  const { hostUrl, adminId } = req.body;
-  const event = hostUrl ? await getEventByKey(adminId, hostUrl, 'hostUrl') : await getMostRecentEvent(adminId);
+  const { hostUrl, domainId } = req.body;
+  const event = hostUrl ? await getEventByKey(domainId, hostUrl, 'hostUrl') : await getMostRecentEvent(domainId);
   if (event) {
     const token = jwt.sign({
       hostUrl,
-      adminId,
+      domainId,
       role: roles.CELEBHOST,
     }, config.jwtSecret);
     return res.json({ token });
@@ -94,12 +98,12 @@ const loginHost = async (req, res, next) => {
  * @returns {*}
  */
 const loginCelebrity = async (req, res, next) => {
-  const { celebrityUrl, adminId } = req.body;
-  const event = celebrityUrl ? await getEventByKey(adminId, celebrityUrl, 'celebrityUrl') : await getMostRecentEvent(adminId);
+  const { celebrityUrl, domainId } = req.body;
+  const event = celebrityUrl ? await getEventByKey(domainId, celebrityUrl, 'celebrityUrl') : await getMostRecentEvent(domainId);
   if (event) {
     const token = jwt.sign({
       celebrityUrl,
-      adminId,
+      domainId,
       role: roles.CELEBHOST,
     }, config.jwtSecret);
     return res.json({ token });
