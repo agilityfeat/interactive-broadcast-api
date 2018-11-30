@@ -12,6 +12,8 @@ const domainProps = [
   'siteLogo',
   'siteFavicon',
   'domain',
+  'otApiKey',
+  'otSecret',
   'createdAt',
   'updatedAt'
 ];
@@ -20,8 +22,6 @@ const adminProps = [
   'id',
   'domainId',
   'displayName',
-  'otApiKey',
-  'otSecret',
   'superAdmin',
   'email',
   'createdAt',
