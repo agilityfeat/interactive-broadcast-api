@@ -11,8 +11,10 @@ const jwtAdmin = {
 
 const jwtFan = {
   body: {
-    fanUrl: Joi.string(),
     domainId: Joi.string().required(),
+    email: Joi.string(),
+    password: Joi.string(),
+    fanUrl: Joi.string(),
   }
 };
 
