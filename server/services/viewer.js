@@ -1,8 +1,8 @@
-const { db, admin } = require('./firebase');
+const { db } = require('./firebase');
 const R = require('ramda');
-const { userProps, viewerProps, timestampCreate } = require('./dbProperties');
+const bcrypt = require('bcrypt');
+const { viewerProps, timestampCreate } = require('./dbProperties');
 
-const buildUser = (data, props = userProps) => R.pick(props, data);
 const buildViewer = (data, props = viewerProps) => R.pick(props, data);
 
 
@@ -27,6 +27,20 @@ const getViewer = async (domainId, uid) => {
   const viewers = await db.ref(`domains/${domainId}/viewers`);
   const snapshot = await viewers.child(uid).once('value');
 
+  return buildViewer(snapshot.val());
+};
+
+
+/**
+ * Get a particular viewer by email from firebase
+ * @param {String} domainId
+ * @param {String} email
+ * @returns {Promise} <resolve: Viewer data, reject: Error>
+ */
+const getViewerByEmail = async (domainId, email) => {
+  const viewers = await db.ref(`domains/${domainId}/viewers`).orderByChild('email');
+  const snapshot = await viewers.equalTo(email).once('value');
+
   return snapshot.val();
 };
 
@@ -47,23 +61,24 @@ const deleteViewer = async (domainId, uid) => {
  * @returns {Promise} <resolve: Viewer data, reject: Error/>
  */
 const createViewer = async (data) => {
-  let user = null;
+  if (!await getViewerByEmail(data.domainId, data.email)) {
+    /* eslint-disable no-param-reassign */
+    data.password = bcrypt.hashSync(data.password, 10);
+    data.timeStampCreate = timestampCreate;
+    db.ref(`domains/${data.domainId}/viewers/${data.id}`).set(data);
 
-  try {
-    user = await admin.auth().createUser(buildUser(data));
-  } catch (error) {
-    user = await admin.auth().getUserByEmail(data.email);
+    return getViewer(data.domainId, data.id);
   }
 
-  const viewerData = buildViewer(R.merge(timestampCreate, data));
-  db.ref(`domains/${data.domainId}/viewers/${user.uid}`).set(viewerData);
-  return getViewer(data.domainId, user.uid);
+  return null;
 };
 
 
 export {
+  buildViewer,
   getViewers,
   getViewer,
+  getViewerByEmail,
   deleteViewer,
   createViewer
 };
