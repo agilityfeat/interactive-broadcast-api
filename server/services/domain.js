@@ -50,7 +50,7 @@ const getDomain = async (uid) => {
 
 /**
  * Create an domain
- * @param {String} uid
+ * @param {Object} data
  * @returns {Promise} <resolve: Domain data, reject: Error>
  */
 const createDomain = async (data) => {
