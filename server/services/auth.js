@@ -54,10 +54,9 @@ const loginFan = async (req, res, next) => {
   const { fanUrl, domainId, email, password } = req.body;
   const event = fanUrl ? await getEventByKey(domainId, fanUrl, 'fanUrl') : await getMostRecentEvent(domainId);
 
-  let user = email && await getViewerByEmail(domainId, email);
+  const user = email && await getViewerByEmail(domainId, email);
   const { registrationEnabled } = await getDomain(domainId);
-  const authorized = user && bcrypt.compareSync(password, user[Object.keys(user)[0]].password);
-  user = user && buildViewer(user[Object.keys(user)[0]]);
+  const authorized = user && bcrypt.compareSync(password, user.password);
 
   if (event && (!registrationEnabled || authorized)) {
     const token = jwt.sign({
@@ -65,12 +64,13 @@ const loginFan = async (req, res, next) => {
       domainId,
       role: roles.FAN,
     }, config.jwtSecret);
-    return res.json({ token, user });
+    return res.json({ token, user: buildViewer(user) });
   }
 
   const err = new APIError('Authentication error', httpStatus.UNAUTHORIZED, true);
   return next(err);
 };
+
 
 /**
  * Returns jwt token if valid username and password is provided
