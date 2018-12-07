@@ -40,8 +40,38 @@ const getViewer = async (domainId, uid) => {
 const getViewerByEmail = async (domainId, email) => {
   const viewers = await db.ref(`domains/${domainId}/viewers`).orderByChild('email');
   const snapshot = await viewers.equalTo(email).once('value');
+  const viewer = snapshot.val() && snapshot.val()[Object.keys(snapshot.val())[0]];
 
-  return snapshot.val();
+  return viewer;
+};
+
+/**
+ * Send a reset password email for viewers
+ * @param {String} domainId
+ * @param {String} email
+ * @returns {Promise} <resolve: Promise>
+ */
+const sendResetPassword = async (userUrl, domainId, email) => {
+  const viewer = await getViewerByEmail(domainId, email);
+  const domain = await getDomain(domainId);
+
+  const mailer = new Mailer();
+  return await mailer.sendViewerResetMail(userUrl, domain, viewer);
+};
+
+
+/**
+ * Send a reset password email for viewers
+ * @param {String} token
+ * @param {String} password
+ * @returns {Promise} <resolve: Promise>
+ */
+const resetPassword = async (token, password) => {
+  const { domainId, userId, userUrl } = jwt.verify(token, process.env.JWT_SECRET);
+  const viewerPass = await db.ref(`domains/${domainId}/viewers/${userId}/password`);
+
+  await viewerPass.set(bcrypt.hashSync(password, 10));
+  return { success: true, userUrl };
 };
 
 
