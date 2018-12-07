@@ -21,7 +21,7 @@ class Mailer {
     return await this.sendgrid.send({
       to: user.email,
       from: process.env.SENDGRID_EMAIL,
-      templateId: 'd-6fefc2b288524749ba69c45e67d92efb',
+      templateId: process.env.FORGOT_PWD_TEMPLATE,
       dynamicTemplateData: {
         name: user.displayName,
         reset_url: `https://${domain.domain}/resetPassword?${query}`
