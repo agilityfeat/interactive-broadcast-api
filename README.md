@@ -41,6 +41,8 @@ PORT=3001
 JWT_SECRET=0a6b944d-d2fb-46fc-a85e-0295c986cd9f
 INTERACTIVE_STREAM_LIMIT=2
 BUCKET_URL=INSERT_HERE
+SENDGRID_API_KEY=sadfasdfrandomkey
+SENDGRID_EMAIL=some@email.com
 ```
 
 Replace these values with the following:
@@ -60,6 +62,10 @@ Replace these values with the following:
 
 * `BUCKET_URL` -- The URL of your Amazon S3 bucket, such as
   `https//s3.amazonaws.com/yourBucketName`.
+
+* `SENDGRID_API_KEY` -- The API key to use for sending transactional emails.
+
+* `SENDGRID_EMAIL` -- The email to be used as a sender for those emails.
 
 Add you Firebase credentials to the /config/config.js file.
 
