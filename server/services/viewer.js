@@ -1,7 +1,10 @@
 const { db } = require('./firebase');
 const R = require('ramda');
+const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { viewerProps, timestampCreate } = require('./dbProperties');
+const { getDomain } = require('./domain');
+const Mailer = require('../helpers/Mailer');
 
 const buildViewer = (data, props = viewerProps) => R.pick(props, data);
 
@@ -106,6 +109,8 @@ const createViewer = async (data) => {
 
 export {
   buildViewer,
+  sendResetPassword,
+  resetPassword,
   getViewers,
   getViewer,
   getViewerByEmail,
