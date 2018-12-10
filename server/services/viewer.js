@@ -2,6 +2,8 @@ const { db } = require('./firebase');
 const R = require('ramda');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const httpStatus = require('http-status');
+const APIError = require('../helpers/APIError');
 const { viewerProps, timestampCreate } = require('./dbProperties');
 const { getDomain } = require('./domain');
 const Mailer = require('../helpers/Mailer');
@@ -103,7 +105,11 @@ const createViewer = async (data) => {
     return getViewer(data.domainId, data.id);
   }
 
-  return null;
+  throw new APIError(
+    'There\'s already a user with that email',
+    httpStatus.UNAUTHORIZED,
+    true
+  );
 };
 
 
