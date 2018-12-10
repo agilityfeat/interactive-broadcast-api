@@ -1,10 +1,12 @@
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 import httpStatus from 'http-status';
 import APIError from '../helpers/APIError';
 import config from '../../config/config';
 import { getEventByKey, getMostRecentEvent } from './event';
 import { getAdmin } from './admin';
 import { getDomain } from './domain';
+import { getViewerByEmail, buildViewer } from './viewer';
 import { verifyIdToken } from './firebase';
 
 const roles = {
@@ -49,23 +51,26 @@ const login = async (req, res, next) => {
  * @returns {*}
  */
 const loginFan = async (req, res, next) => {
-  const { fanUrl, domainId, idToken } = req.body;
+  const { fanUrl, domainId, email, password } = req.body;
   const event = fanUrl ? await getEventByKey(domainId, fanUrl, 'fanUrl') : await getMostRecentEvent(domainId);
-  const uid = await verifyIdToken(idToken);
-  const { registrationEnabled } = await getDomain(domainId);
 
-  if (event && (!registrationEnabled || uid)) {
+  const user = email && await getViewerByEmail(domainId, email);
+  const { registrationEnabled } = await getDomain(domainId);
+  const authorized = user && bcrypt.compareSync(password, user.password);
+
+  if (event && (!registrationEnabled || authorized)) {
     const token = jwt.sign({
       fanUrl,
       domainId,
       role: roles.FAN,
     }, config.jwtSecret);
-    return res.json({ token });
+    return res.json({ token, user: buildViewer(user) });
   }
 
   const err = new APIError('Authentication error', httpStatus.UNAUTHORIZED, true);
   return next(err);
 };
+
 
 /**
  * Returns jwt token if valid username and password is provided

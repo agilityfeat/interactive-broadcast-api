@@ -29,11 +29,22 @@ const adminProps = [
 ];
 
 const viewerProps = [
+  'id',
   'domainId',
   'displayName',
   'email',
   'createdAt',
   'updatedAt'
+];
+
+const viewerAuthProps = [
+  'id',
+  'domainId',
+  'displayName',
+  'email',
+  'createdAt',
+  'updatedAt',
+  'password'
 ];
 
 const userProps = [
@@ -99,6 +110,7 @@ module.exports = {
   domainProps,
   userProps,
   viewerProps,
+  viewerAuthProps,
   eventProps,
   eventPublicProps,
   timestampCreate,

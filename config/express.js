@@ -31,6 +31,8 @@ const allowedPaths = [
   '/api/event/get-current-admin-event',
   '/api/event/get-by-key',
   '/api/viewer',
+  '/api/viewer/send-reset-password',
+  '/api/viewer/reset-password'
 ];
 
 // parse body params and attache them to req.body

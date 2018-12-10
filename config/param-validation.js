@@ -11,8 +11,10 @@ const jwtAdmin = {
 
 const jwtFan = {
   body: {
-    fanUrl: Joi.string(),
     domainId: Joi.string().required(),
+    email: Joi.string(),
+    password: Joi.string(),
+    fanUrl: Joi.string(),
   }
 };
 
@@ -126,6 +128,20 @@ const createViewer = {
   },
 };
 
+const resetPassword = {
+  body: {
+    token: Joi.string().required(),
+    password: Joi.string().required()
+  }
+};
+
+const sendResetPassword = {
+  body: {
+    domainId: Joi.string().required(),
+    email: Joi.string().required()
+  }
+};
+
 export {
   jwtAdmin,
   createAdmin,
@@ -138,6 +154,8 @@ export {
   createViewer,
   createDomain,
   updateDomain,
+  sendResetPassword,
+  resetPassword,
   jwtFan,
   jwtHost,
   jwtCelebrity
