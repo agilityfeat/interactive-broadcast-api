@@ -1,6 +1,7 @@
 const admin = require('firebase-admin');
 
-const domainProps = [
+const
+domainProps = [
   'id',
   'httpSupport',
   'hls',
@@ -8,6 +9,7 @@ const domainProps = [
   'embedEnabled',
   'registrationEnabled',
   'fileSharingEnabled',
+  'screenSharingEnabled',
   'siteColor',
   'siteLogo',
   'siteFavicon',
