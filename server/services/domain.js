@@ -8,6 +8,7 @@ const setDefaults = (domainData) => {
     'audioOnlyEnabled',
     'embedEnabled',
     'fileSharingEnabled',
+    'screenSharingEnabled',
     'hls',
     'httpSupport'
   ];
