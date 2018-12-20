@@ -64,7 +64,7 @@ const loginFan = async (req, res, next) => {
       domainId,
       role: roles.FAN,
     }, config.jwtSecret);
-    return res.json({ token, user: buildViewer(user) });
+    return res.json({ token, user: user && buildViewer(user) });
   }
 
   const err = new APIError('Authentication error', httpStatus.UNAUTHORIZED, true);
