@@ -57,7 +57,15 @@ const getEventsByAdmin = async (adminId = null) => {
 
 const getEventsByDomainId = async (domainId = null) => {
   const snapshot = await db.ref('events').orderByChild('domainId').equalTo(domainId).once('value');
-  return snapshot.val();
+  const events = snapshot.val();
+
+  const namedEvents = Object.keys(events).map(async (k) => {
+    const event = events[k];
+    const admin = await Admin.getAdmin(event.adminId);
+    return R.merge(event, { adminName: admin.displayName });
+  });
+
+  return await Promise.all(namedEvents);
 };
 
 /**
@@ -230,7 +238,8 @@ const stopArchive = async (event, domain) => {
       console.log('Error stopping the archive =>', error);
     }
   }
-  return true;
+
+  return null;
 };
 
 /**
