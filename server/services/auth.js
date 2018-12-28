@@ -52,13 +52,12 @@ const login = async (req, res, next) => {
  */
 const loginFan = async (req, res, next) => {
   const { fanUrl, domainId, email, password } = req.body;
-  const event = fanUrl ? await getEventByKey(domainId, fanUrl, 'fanUrl') : await getMostRecentEvent(domainId);
 
   const user = email && await getViewerByEmail(domainId, email);
   const { registrationEnabled } = await getDomain(domainId);
   const authorized = user && bcrypt.compareSync(password, user.password);
 
-  if (event && (!registrationEnabled || authorized)) {
+  if (!registrationEnabled || authorized) {
     const token = jwt.sign({
       fanUrl,
       domainId,
