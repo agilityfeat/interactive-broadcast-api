@@ -28,6 +28,7 @@ const allowedPaths = [
   '/api/auth/token-celebrity',
   '/api/auth/token-host',
   '/api/event/get-events-by-admin',
+  '/api/event/get-by-domain',
   '/api/event/get-current-admin-event',
   '/api/event/get-by-key',
   '/api/viewer',
