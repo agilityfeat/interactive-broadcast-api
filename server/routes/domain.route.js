@@ -14,7 +14,7 @@ const updateDomain = getAPIResponse(req => Domain.updateDomain(req.params.id, re
 const deleteDomain = getAPIResponse(req => Domain.deleteDomain(req.params.id));
 
 router.get('/', checkAdmin, getDomains);
-router.get('/:id', checkAdmin, getDomainById);
+router.get('/:id', getDomainById);
 router.post('/', checkAdmin, validate(paramValidation.createDomain), validateApiKey, createDomain);
 router.patch('/:id', checkAdmin, validate(paramValidation.updateDomain), validateApiKey, updateDomain);
 router.delete('/:id', checkAdmin, deleteDomain);
