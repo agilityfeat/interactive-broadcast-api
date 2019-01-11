@@ -22,7 +22,7 @@ const sendError = (res, error) => {
 const checkRole = (role, req, res, next) => {
   const token = req.headers.authorization.replace('Bearer ', '');
   jwt.verify(token, config.jwtSecret, (err, decoded) => {
-    if (decoded.role === role) {
+    if (decoded.role === role || decoded.role === 'admin') {
       next();
     } else {
       sendError(res, { message: 'Authentication error', status: httpStatus.UNAUTHORIZED });

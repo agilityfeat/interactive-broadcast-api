@@ -79,7 +79,8 @@ const eventProps = [
   'adminId',
   'rtmpUrl',
   'createdAt',
-  'updatedAt'
+  'updatedAt',
+  'producerHost'
 ];
 
 const eventPublicProps = [
