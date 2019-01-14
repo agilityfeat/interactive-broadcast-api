@@ -38,7 +38,6 @@ const getAdmin = async (uid) => {
  */
 const createAdmin = async (data) => {
   const adminData = buildAdmin(R.merge(timestampCreate, data));
-  adminData.otSecret = adminData.otSecret ? encrypt(adminData.otSecret) : '';
   db.ref(`admins/${data.id}`).set(adminData);
   return getAdmin(data.id);
 };
