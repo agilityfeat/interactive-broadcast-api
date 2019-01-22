@@ -59,13 +59,12 @@ const getEventsByDomainId = async (domainId = null) => {
   const snapshot = await db.ref('events').orderByChild('domainId').equalTo(domainId).once('value');
   const events = snapshot.val();
 
-  const namedEvents = Object.keys(events).map(async (k) => {
-    const event = events[k];
-    const admin = await Admin.getAdmin(event.adminId);
-    return R.merge(event, { adminName: admin.displayName });
+  Object.keys(events).forEach(async (k) => {
+    const admin = await Admin.getAdmin(events[k].adminId);
+    events[k].adminName = admin.displayName;
   });
 
-  return await Promise.all(namedEvents);
+  return events;
 };
 
 /**
