@@ -55,6 +55,16 @@ const userProps = [
   'password'
 ];
 
+const sharedFileProps = [
+  'eventId',
+  'id',
+  'name',
+  'type',
+  'url',
+  'userId',
+  'fromId'
+];
+
 const eventProps = [
   'id',
   'name',
@@ -115,6 +125,7 @@ module.exports = {
   viewerProps,
   viewerAuthProps,
   eventProps,
+  sharedFileProps,
   eventPublicProps,
   timestampCreate,
   timestampUpdate,
