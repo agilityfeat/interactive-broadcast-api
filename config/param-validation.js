@@ -89,6 +89,18 @@ const event = {
   },
 };
 
+const sharedFile = {
+  body: {
+    id: Joi.string().required(),
+    name: Joi.string().required(),
+    url: Joi.string().required(),
+    type: Joi.string().required(),
+    userId: Joi.string().allow(null),
+    domainId: Joi.string().required(),
+    fromId: Joi.string().allow(null)
+  }
+};
+
 const eventStatus = {
   body: {
     status: Joi.string().valid(R.values(eventStatuses)).required(),
@@ -147,6 +159,7 @@ export {
   createAdmin,
   updateAdmin,
   event,
+  sharedFile,
   eventStatus,
   createTokenFan,
   createTokenHost,
