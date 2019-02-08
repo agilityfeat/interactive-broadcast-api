@@ -30,7 +30,7 @@ const login = async (req, res, next) => {
   const idToken = req.body.idToken;
   const uid = await verifyIdToken(idToken);
   const { domainId, superAdmin } = await getAdmin(uid);
-  const { domain } = await getDomain(domainId);
+  const { domain } = !superAdmin && await getDomain(domainId);
 
   if (uid && (superAdmin || req.originDomain === domain)) {
     const token = jwt.sign({
