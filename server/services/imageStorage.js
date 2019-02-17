@@ -96,8 +96,11 @@ const updateImages = async (currentImages, imagesUpdate = {}) => {
   // [Promise]
   const imagesToRemove = R.reduce((acc, type) => {
     if (R.has(type)(currentImages)) {
-      const imageId = R.path([type, 'id'], currentImages);
-      return R.append(removeImage(imageId), acc);
+      const oldId = R.path([type, 'id'], currentImages);
+      const newId = R.path([type, 'id'], imagesUpdate);
+      if (oldId !== newId) {
+        return R.append(removeImage(oldId), acc);
+      }
     }
     return acc;
   }, [], R.keys(imagesUpdate));
